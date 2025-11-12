@@ -8,7 +8,7 @@ class ArpPoisoner;
 class PacketCapture;
 class FtpParser;
 
-class InquisitorFacade
+class Inquisitor
 {
 public:
 	struct Config
@@ -20,15 +20,15 @@ public:
 		bool verbose;
 		std::string interface;
 	};
-	InquisitorFacade(const Config &config);
-	~InquisitorFacade();
+	Inquisitor(const Config &config);
+	~Inquisitor();
 
 	bool initialize();
 	void startAttack();
 	void stopAttack();
 
-	InquisitorFacade(const InquisitorFacade &) = delete;
-	InquisitorFacade &operator=(const InquisitorFacade &) = delete;
+	Inquisitor(const Inquisitor &) = delete;
+	Inquisitor &operator=(const Inquisitor &) = delete;
 
 private:
 	Config config_;
