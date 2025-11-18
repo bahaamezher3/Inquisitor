@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  # Attacker machine (runs inquisitor)
+  attacker:
+    build: .
+    container_name: inquisitor_attacker
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    networks:
+      - inquisitor_network
+    command: ["-c", "tail -f /dev/null"]
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./src:/app/src
+      - ./tests:/app/tests
+    depends_on:
+      - gateway
+      - victim
+
+  # Gateway/Router (also acts as FTP server)
+  gateway:
+    image: alpine:latest
+    container_name: inquisitor_gateway
+    networks:
+      - inquisitor_network
+    command: >
+      sh -c "apk add --no-cache vsftpd &&
+             mkdir -p /home/ftp/upload &&
+             chmod 777 /home/ftp/upload &&
+             echo 'anonymous_enable=YES' > /etc/vsftpd/vsftpd.conf &&
+             echo 'write_enable=YES' >> /etc/vsftpd/vsftpd.conf &&
+             echo 'local_enable=YES' >> /etc/vsftpd/vsftpd.conf &&
+             echo 'anon_upload_enable=YES' >> /etc/vsftpd/vsftpd.conf &&
+             echo 'anon_root=/home/ftp' >> /etc/vsftpd/vsftpd.conf &&
+             echo 'listen=YES' >> /etc/vsftpd/vsftpd.conf &&
+             echo 'listen_ipv6=NO' >> /etc/vsftpd/vsftpd.conf &&
+             echo 'seccomp_sandbox=NO' >> /etc/vsftpd/vsftpd.conf &&
+             vsftpd /etc/vsftpd/vsftpd.conf"
+    stdin_open: true
+    tty: true
+
+  # Victim machine (FTP client)
+  victim:
+    image: alpine:latest
+    container_name: inquisitor_victim
+    networks:
+      - inquisitor_network
+    command: >
+      sh -c "apk add --no-cache vsftpd lftp && \
+             mkdir -p /ftp_uploads && \
+             touch /ftp_uploads/test_file.txt && \
+             echo 'This is a test file' > /ftp_uploads/test_file.txt && \
+             tail -f /dev/null"
+    volumes:
+      - ./ftp_uploads:/ftp_uploads
+    depends_on:
+      - gateway
+    stdin_open: true
+    tty: true
+
+networks:
+  inquisitor_network:
+    driver: bridge

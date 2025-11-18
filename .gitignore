@@ -1,0 +1,22 @@
+# Compiled files
+*.o
+*.out
+inquisitor
+
+# Build directories
+obj/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test files
+test_*.txt
+/tmp/
